@@ -210,6 +210,7 @@ function _push(diffResult, resolve) {
 // 1、diff 操作，本次是比较前后的data -> 得到最小的diff data -> 然后才调用setData来更新数据，
 // 2、而这个前后数据的比较都是建立在全局store中的，所以每个page或者component中的data应该在全局Store中定义
 // 3、westore 会收集所有页面和组件的实例，在开发者执行 this.update 的时候遍历所有实例进行 setData
+// 4、纯组件只能通过 props 获得所需参数，通过 triggerEvent 与外界通讯
 // 跨页面同步数据：使用 westore 你不用关心跨页数据同步，你只需要专注 this.store.data 便可，修改完在任意地方调用 update 便可：this.update()
 function update(patch) {
     return new Promise(resolve => {
