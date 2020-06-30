@@ -1,3 +1,4 @@
+// 这里的数据  会覆盖page中的data数据 通key情况下
 export default {
   data: {
     motto: 'Hello World',
@@ -5,7 +6,7 @@ export default {
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     logs: [],
-    b: { 
+    b: {  // 对象中含有函数，会通过Object.defineProperty 来做数据的劫持
       arr: [{ name: '数值项目1' }] ,
       //深层节点也支持函数属性
       fnTest:function(){
@@ -14,7 +15,7 @@ export default {
     },
     firstName: 'dnt',
     lastName: 'zhang',
-    fullName: function () {
+    fullName: function () {  // 针对函数会做数据劫持
       return this.firstName + this.lastName
     },
     pureProp: 'pureProp',

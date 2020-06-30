@@ -2,7 +2,7 @@ import store from '../../store'
 import create from '../../utils/create'
 
 const app = getApp()
-
+debugger // 通过create 之后store上面会挂载update push pull add remve 等方法
 create(store, {
 
   bindViewTap: function () {
@@ -23,10 +23,12 @@ create(store, {
   },
 
   onShow() {
+    debugger
     this.update()
   },
 
   onLoad: function () {
+    debugger
     if (app.globalData.userInfo) {
       this.update({
         userInfo:app.globalData.userInfo,
@@ -35,6 +37,7 @@ create(store, {
     } else if (this.data.canIUse) {
 
       app.userInfoReadyCallback = res => {
+        debugger
         this.store.data.userInfo = res.userInfo
         this.store.data.hasUserInfo = true
         this.update()
@@ -98,6 +101,7 @@ create(store, {
   getUserInfo: function(e) {
     wx.getSetting({
       success(auth_res) {
+        debugger
         if (auth_res.authSetting["scope.userInfo"]) {
           app.globalData.userInfo = e.detail.userInfo
           store.update({

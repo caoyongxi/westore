@@ -12,9 +12,11 @@
 	},
 	"compileType": "miniprogram",
 	"libVersion": "9.9.9",
-	"appid": "wxfaf6dad43f57c6bd",
+	"appid": "wx1917823cb7fb932d",
 	"projectname": "westore",
 	"isGameTourist": false,
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
 	"condition": {
 		"search": {
 			"current": -1,

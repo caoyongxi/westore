@@ -12,6 +12,7 @@
     <text class="user-motto">{{motto}}</text>
   </view>
   <view class="usermotto">
+    <!-- 通过对数据的劫持，类似vue computed属性 -->
     <text class="user-motto">{{b.fnTest}}</text>
   </view>
   <view wx:for="{{b.arr}}" wx:for-item="item">

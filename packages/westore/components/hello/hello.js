@@ -23,7 +23,7 @@ create({
     // this.store.onChange = function(info){
     //   console.log(info)
     // }
-
+    debugger
     setTimeout(() => {
       this.setData({
         bbb:'使用 setData 修改组件私有数据'

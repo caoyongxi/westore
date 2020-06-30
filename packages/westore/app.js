@@ -3,6 +3,7 @@ import store from './store'
 //app.js
 App({
   onLaunch: function () {
+    debugger
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
@@ -16,6 +17,7 @@ App({
     })
 
     setTimeout(function(){
+      debugger
       store.data.motto = '成功在 app.js 进行更新'
       //这里只能用 store.update 而不是 this.update
       store.update()

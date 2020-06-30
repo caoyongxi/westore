@@ -9,15 +9,17 @@ const OBJECTTYPE = '[object Object]'
 const FUNCTIONTYPE = '[object Function]'
 
 export default function create(store, option) {
+    debugger
     let updatePath = null
-    if (arguments.length === 2) {   
+    if (arguments.length === 2) { // 2 为创建页面的时候 page
         if (option.data && Object.keys(option.data).length > 0) {
             updatePath = getUpdatePath(option.data)
-            syncValues(store.data, option.data)
+            syncValues(store.data, option.data) // 全局store 里面的数据会merge到页面或者是component中去
         }
+        // globalStore 只会初始化一次
         if (!originData) {
-            originData = JSON.parse(JSON.stringify(store.data))
-            globalStore = store
+            originData = JSON.parse(JSON.stringify(store.data)) // 原始store.data 
+            globalStore = store // 全局的store
             store.instances = {}
             store.update = update
             store.push = push
@@ -28,14 +30,15 @@ export default function create(store, option) {
             store.env && initCloud(store.env)
             extendStoreMethod(store)
         }
-        getApp().globalData && (getApp().globalData.store = store)
+        getApp().globalData && (getApp().globalData.store = store) // 全局app globalData 挂载store
         //option.data = store.data
         const onLoad = option.onLoad
-        walk(store.data)
+        walk(store.data) // walk 目的是：对store 中含有函数的属性进行劫持，实现computed
+        
         // 解决函数属性初始化不能显示的问题，要求必须在data中声明使用
         // 这段代码是同步store.data到option.data，只有经过walk方法后store.data中的函数才能变成属性，才能被小程序page方法渲染
         if (option.data && Object.keys(option.data).length > 0) {
-            updatePath = getUpdatePath(option.data)
+            updatePath = getUpdatePath(option.data)  
             syncValues(store.data, option.data)
         }
         option.onLoad = function (e) {
@@ -64,20 +67,24 @@ export default function create(store, option) {
         const componentUpdatePath = getUpdatePath(store.data)
         
         store.ready = store.lifetimes.ready = function () {
+            // pure 纯组件不会syncValues 合并全局的store 到 组件的data中
             if (pure) {
                 this.store = { data: store.data || {} }
                 this.store.originData = store.data ? JSON.parse(JSON.stringify(store.data)) : {}
-                walk(store.data || {})
+                walk(store.data || {})  // walk 的目的就是为了检测data中有没有属性是函数，如果是函数，在xml渲染时，可以通过劫持的方式来做到computed属性
                 rewritePureUpdate(this)
             } else {
+                // 组件中，通过这个来获取当前是在那个page页面中, 在调用update时候，如果含有相应的diff object，则会执行。
                 this.page = getCurrentPages()[getCurrentPages().length - 1]
                 this.store = this.page.store
                 this._updatePath = componentUpdatePath
+
                 syncValues(this.store.data, store.data)
                 walk(store.data || {})
+
                 this.setData.call(this, this.store.data)
                 rewriteUpdate(this)
-                this.store.instances[this.page.route].push(this)
+                this.store.instances[this.page.route].push(this)  // 把当前组件加入到instance中
             }
             ready && ready.call(this)
         }
@@ -93,7 +100,7 @@ function syncValues(from, to){
     })
 }
 
-
+// 由data -> 形成路径
 function getUpdatePath(data) {
 	const result = {}
     dataToPath(data, result)
@@ -149,10 +156,13 @@ function rewritePureUpdate(ctx) {
                     updateByPath(store.data, key, patch[key])
                 }
             }
+            /**
+             *  从这里可以看出来：使用 this.data 可以获取内部数据和属性值，但不要直接修改它们，应使用 setData 修改
+             */
             let diffResult = diff(store.data, store.originData)
             let array = []
             if (Object.keys(diffResult).length > 0) {
-                array.push( new Promise( cb => that.setData(diffResult, cb) ) )
+                array.push( new Promise( cb => that.setData(diffResult, cb) ) ) // 可以清楚知道，component 中是通过this.store来直接修改数据，然后通过this.update() 来更新数据
                 store.onChange && store.onChange(diffResult)
                 for (let key in diffResult) {
                     updateByPath(store.originData, key, typeof diffResult[key] === 'object' ? JSON.parse(JSON.stringify(diffResult[key])) : diffResult[key])
@@ -197,21 +207,28 @@ function _push(diffResult, resolve) {
     })
 }
 
+// 1、diff 操作，本次是比较前后的data -> 得到最小的diff data -> 然后才调用setData来更新数据，
+// 2、而这个前后数据的比较都是建立在全局store中的，所以每个page或者component中的data应该在全局Store中定义
+// 3、westore 会收集所有页面和组件的实例，在开发者执行 this.update 的时候遍历所有实例进行 setData
+// 跨页面同步数据：使用 westore 你不用关心跨页数据同步，你只需要专注 this.store.data 便可，修改完在任意地方调用 update 便可：this.update()
 function update(patch) {
     return new Promise(resolve => {
         //defineFnProp(globalStore.data)
+        // 先更新 globalStore.data 中的数据
         if (patch) {
             for (let key in patch) {
                 updateByPath(globalStore.data, key, patch[key])
             }
         }
+        // 数据量很大的时候， 有大量的数据对象比较操作
         let diffResult = diff(globalStore.data, originData)
         if (Object.keys(diffResult)[0] == '') {
             diffResult = diffResult['']
         }
-        const updateAll = matchGlobalData(diffResult)
+        const updateAll = matchGlobalData(diffResult) // 查看是否是update All Global数据
         let array = []
         if (Object.keys(diffResult).length > 0) {
+            // 会递归遍历实例
             for (let key in globalStore.instances) {
                 globalStore.instances[key].forEach(ins => {
                     if(updateAll || globalStore.updateAll || ins._updatePath){
@@ -220,6 +237,7 @@ function update(patch) {
                         if (needUpdatePathList.length) {
                             const _diffResult = {}
                             for (let _path in diffResult) {
+                                // 这里加includes 来判断-> 原因是setData 每个组件
                                 if (needUpdatePathList.includes(_path)) {
                                     _diffResult[_path] = typeof diffResult[_path] === 'object' ? JSON.parse(JSON.stringify(diffResult[_path])) : diffResult[_path]
                                 }
@@ -366,7 +384,7 @@ function diffItemToObj(path, value, result) {
     result[key] = Object.assign(result[key] || {}, obj)
 }
 
-function extendStoreMethod() {
+function extendStoreMethod() { // 重写store中的function
     globalStore.method = function (path, fn) {
         fnMapping[path] = fn
         let ok = getObjByPath(path)

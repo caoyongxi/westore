@@ -33,7 +33,7 @@ create({
    */
   methods: {
     onTap: function(){
-      
+      debugger
       this.store.data.privateData = '成功修改 privateData'
       this.update()
       //从这里开始绘制一张单向数据流的图
