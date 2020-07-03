@@ -8,7 +8,10 @@
     </block>
   </view>
   <view class="usermotto">
-    <text class="user-motto">{{motto}}-{{reverseMotto}}-{{newProp}}</text>
+    <view class="user-motto">{{$.motto}}</view>
+    <view class="user-motto">newProp: {{$.newProp}}</view>
+    <view>computed计算属性reverseMotto: {{reverseMotto}}</view>
+    <view class="user-motto">含有data: {{maydata}}</view>
   </view>
   <test-store />
 </view>

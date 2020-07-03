@@ -7,6 +7,7 @@ export function getUsing(data, paths) {
   paths.forEach((path, index) => {
     const isPath = typeof path === 'string'
     if (!isPath) {
+      debugger
       const key = Object.keys(path)[0]
       const value = path[key]
       if (typeof value !== 'string') {

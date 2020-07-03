@@ -5,17 +5,23 @@ import store from '../../store/index'
 const app = getApp()
 
 create.Page(store, {
+  // **重要
+  // use里面声明的数据，用于在试图渲染，如果不声明，视图则不会显示
   use: [
     'motto',
     'userInfo',
     'hasUserInfo',
     'canIUse',
-    'newProp'
+    'newProp'  // use里面声明的数据，用于在试图渲染，如果不声明，则不会显示
   ],
   computed: {
     reverseMotto() {
+      // debugger this 即是store
       return this.motto.split('').reverse().join('')
     }
+  },
+  data: {
+    maydata: 'maydata'  // 如果含有data，则use声明的数据以$.* 来获取数据
   },
   //事件处理函数
   bindViewTap: function () {
@@ -24,6 +30,7 @@ create.Page(store, {
     })
   },
   onLoad: function () {
+    // debugger
     if (app.globalData.userInfo) {
       this.store.data.userInfo = app.globalData.userInfo
       this.store.data.hasUserInfo = true
@@ -46,29 +53,32 @@ create.Page(store, {
       })
     }
 
-    setTimeout(() => {
-      this.store.data.logs.push('abc')
-      this.store.data.motto = '123456'
-    }, 1000)
+    // setTimeout(() => {
+    //   debugger
+    //   this.store.data.logs.push('abc')
+    //   this.store.data.motto = '123456'
+    // }, 1000)
+
+    // setTimeout(() => {
+    //   this.store.data.motto = 'abcdefg'
+    // }, 2000)
 
     setTimeout(() => {
-      this.store.data.motto = 'abcdefg'
-    }, 2000)
-
-    setTimeout(() => {
+      debugger
       this.store.set(this.store.data, 'newProp', 'newPropVal')
     }, 3000)
 
 
-    const handler = function (evt) {
-      console.log(evt)
-    }
-    store.onChange(handler)
+    // const handler = function (evt) {
+    //   console.log(evt)
+    // }
+    // store.onChange(handler)
 
     //store.offChange(handler)
 
   },
   getUserInfo: function (e) {
+    debugger
     this.store.data.userInfo = e.detail.userInfo
     this.store.data.hasUserInfo = true
 

@@ -46,6 +46,7 @@ export default function obaa(target, arr, callback) {
   }
   _observe.prototype = {
     onPropertyChanged: function (prop, value, oldValue, target, path) {
+      // debugger
       if (value !== oldValue && (!(nan(value) && nan(oldValue))) && this.propertyChangedHandler) {
         var rootName = obaa._getRootName(prop, path)
         for (
@@ -68,7 +69,7 @@ export default function obaa(target, arr, callback) {
       }
     },
     mock: function (target) {
-      var self = this
+      var self = this  // 这里是对数组的劫持
       obaa.methods.forEach(function (item) {
         target[item] = function () {
           var old = Array.prototype.slice.call(this, 0)
@@ -129,6 +130,8 @@ export default function obaa(target, arr, callback) {
           return this.$observeProps[prop]
         },
         set: function (value) {
+          // 赋值
+          debugger
           var old = this.$observeProps[prop]
           this.$observeProps[prop] = value
           self.onPropertyChanged(
@@ -168,7 +171,7 @@ export default function obaa(target, arr, callback) {
       }
       Object.defineProperty(obj, '$observeProps', {
         configurable: true,
-        enumerable: false,
+        enumerable: false, // 是否可枚举 false 则for in 不可遍历到
         writable: true,
         value: {}
       })

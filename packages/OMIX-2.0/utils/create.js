@@ -9,6 +9,7 @@ import { getPath, needUpdate, fixPath, getUsing } from './path'
 
 
 function create(store, option) {
+  // debugger
   if (arguments.length === 2) {
     if (!store.instances) {
       store.instances = {}
@@ -43,6 +44,7 @@ function create(store, option) {
     } else {
       option.data = store.data
     }
+    // 对数据对象进行数据劫持， 然后再更改数据的时候，对数据进行按需的更新试图
     observeStore(store)
     const onLoad = option.onLoad
     const onUnload = option.onUnload
@@ -54,6 +56,7 @@ function create(store, option) {
       this.__use = option.use
       this.__hasData = hasData
       if (hasData) {
+        // debugger
         Object.assign(option.data, JSON.parse(JSON.stringify(clone)))
       }
       store.instances[this.route] = store.instances[this.route] || []
@@ -69,6 +72,7 @@ function create(store, option) {
     }
 
     option.onUnload = function (e) {
+      // page销毁 则进行实例的移除
       store.instances[this.route] = store.instances[this.route].filter(ins => ins !== this)
       onUnload && onUnload.call(this, e)
     }
@@ -105,6 +109,7 @@ create.Page = function (store, option) {
 }
 
 create.Component = function (store, option) {
+  // debugger
   if (arguments.length === 2) {
     if (!store.instances) {
       store.instances = {}
@@ -154,6 +159,7 @@ create.Component = function (store, option) {
       this.__use = option.use
       this.__hasData = hasData
       if (hasData) {
+        // debugger
         Object.assign(option.data, JSON.parse(JSON.stringify(clone)))
       }
 
@@ -175,6 +181,7 @@ create.Component = function (store, option) {
     }
 
     option.lifetimes.detached = option.detached = function (e) {
+      // 组件销毁的时候，移除实例，在更新的时候就不会更新此组件实例了
       this.store.instances[this.is] = this.store.instances[this.is].filter(ins => ins !== this)
       detached && detached.call(this, e)
     }
@@ -224,19 +231,20 @@ function observeStore(store) {
     } else {
       patch[fixPath(path + '-' + prop)] = value
     }
-
+    debugger
     _update(patch, store)
-
 
   })
 
   if (!store.set) {
     store.set = function (obj, prop, val) {
+      debugger
       obaa.set(obj, prop, val, oba)
     }
   }
 }
 
+// 更新组件数据
 function _update(kv, store) {
   for (let key in store.instances) {
     store.instances[key].forEach(ins => {
@@ -255,26 +263,27 @@ function _update(kv, store) {
 }
 
 function _updateOne(kv, store, ins){
+  // page 和component 中use 决定当数据变化时，view是否要更新
   if (store.updateAll || ins.__updatePath && needUpdate(kv, ins.__updatePath)) {
     if (ins.__hasData) {
+      // 这个地方逻辑： 如果page或者component有data，则更新的是对应的data.$ 下面的数据
       const patch = Object.assign({}, kv)
       for (let pk in patch) {
-        if (!/\$\./.test(pk)) {
+        if (!/\$\./.test(pk)) { 
           patch['$.' + pk] = kv[pk]
           delete patch[pk]
         }
       }
-      ins.setData.call(ins, patch)
+      ins.setData.call(ins, patch) 
     } else {
       ins.setData.call(ins, kv)
     }
 
     const using = getUsing(store.data, ins.__use)
-
+    // 当修改数据之后，会进行相应的setData 
     compute(ins.computed, store, using, ins)
+    // 然后计算对应的 计算属性，然后设置相应的data值，从而实现计算属性功能
     ins.setData(using)
-
-
   }
 }
 
